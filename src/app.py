@@ -23,9 +23,11 @@ MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # D
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
+
 def allowed_file(filename):
     """Checks if a file is allowed based on its extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.errorhandler(ModelLoadError)
 @app.errorhandler(CaptionGenerationError)
@@ -35,7 +37,8 @@ def handle_caption_error(error):
         error (exceptions.CaptionError): The error to handle.
     """
     logging.error(f"Caption Error: {error}")
-    return make_response( jsonify({"error": str(error)}), 500)
+    return make_response(jsonify({"error": str(error)}), 500)
+
 
 @app.errorhandler(BadRequest)
 def handle_bad_request(error):
@@ -45,6 +48,7 @@ def handle_bad_request(error):
     """
     logging.warning(f"Bad Request: {error}")
     return make_response(jsonify({"error": "Bad Request: " + str(error)}), 400)
+
 
 @app.route('/caption', methods=['POST'])
 def caption_image():
@@ -78,13 +82,14 @@ def caption_image():
             return make_response(jsonify({"error": str(e)}), 500)
         except IOError:
             logging.error("Invalid image format")
-            return make_response(jsonify({"error": "Invalid image format"}), 400 )
+            return make_response(jsonify({"error": "Invalid image format"}), 400)
         finally:
             if os.path.exists(filepath):
                 os.remove(filepath)
     else:
         logging.warning("Invalid file type")
         return make_response(jsonify({"error": "Invalid file type"}), 400)
+
 
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):

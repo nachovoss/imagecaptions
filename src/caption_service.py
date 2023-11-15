@@ -6,7 +6,10 @@ from transformers import AutoProcessor, AutoModelForCausalLM
 from exceptions import ModelLoadError, CaptionGenerationError
 
 load_dotenv()
-MODEL=os.getenv("MODEL")
+
+MODEL = os.getenv("MODEL")
+
+
 class CaptionService:
     """Service for generating captions from images."""
 
@@ -44,6 +47,6 @@ class CaptionService:
             pattern = r"\[(SEP|CLS)\]"
             caption = re.sub(pattern, "", caption).strip().capitalize()
             return caption
-        
+
         except Exception as e:
             raise CaptionGenerationError("Failed to generate caption") from e
