@@ -1,13 +1,13 @@
 import os
+import asyncio
 from flask import Flask, request, jsonify, make_response
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
-from PIL import Image 
+from PIL import Image
 from caption_service import CaptionService
 from exceptions import CaptionError, ModelLoadError, CaptionGenerationError
 import logging
-
 
 load_dotenv()
 
@@ -23,42 +23,31 @@ MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # D
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
-
 def allowed_file(filename):
-    """Checks if a file is allowed based on its extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @app.errorhandler(ModelLoadError)
 @app.errorhandler(CaptionGenerationError)
 def handle_caption_error(error):
-    """Handles caption errors.
-    Args:
-        error (exceptions.CaptionError): The error to handle.
-    """
     logging.error(f"Caption Error: {error}")
     return make_response(jsonify({"error": str(error)}), 500)
 
-
 @app.errorhandler(BadRequest)
 def handle_bad_request(error):
-    """Handles bad requests.
-    Args:
-        error (werkzeug.exceptions.BadRequest): The error to handle.
-    """
     logging.warning(f"Bad Request: {error}")
     return make_response(jsonify({"error": "Bad Request: " + str(error)}), 400)
 
+async def async_generate_caption(image_path):
+    try:
+        with Image.open(image_path) as image:
+            caption = await asyncio.to_thread(caption_service.generate_caption, image)
+        return caption
+    finally:
+        if os.path.exists(image_path):
+            os.remove(image_path)
 
 @app.route('/caption', methods=['POST'])
-def caption_image():
-    """ Generates a caption from an image.
-     Returns:
-        json: The generated caption.
-     Raises:
-        BadRequest: If the request is invalid.
-        CaptionError: If caption generation fails.
-    """
+async def caption_image():
     if 'file' not in request.files:
         logging.warning("No file part in the request")
         return make_response(jsonify({"error": "No file part"}), 400)
@@ -71,11 +60,9 @@ def caption_image():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
         try:
-            file.save(filepath)
-            with Image.open(filepath) as image:
-                caption = caption_service.generate_caption(image)
-            os.remove(filepath)  # Cleanup file
+            caption = await async_generate_caption(filepath)
             return make_response(jsonify({"caption": caption}))
         except CaptionError as e:
             logging.error(f"Caption generation failed: {e}")
@@ -83,15 +70,11 @@ def caption_image():
         except IOError:
             logging.error("Invalid image format")
             return make_response(jsonify({"error": "Invalid image format"}), 400)
-        finally:
-            if os.path.exists(filepath):
-                os.remove(filepath)
     else:
         logging.warning("Invalid file type")
         return make_response(jsonify({"error": "Invalid file type"}), 400)
 
-
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
-    app.run(debug=True)  # Set debug=False in production
+    app.run(debug=True, use_reloader=False)  # Set debug=False in production
