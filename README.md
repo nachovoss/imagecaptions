@@ -47,8 +47,8 @@ Access the application at `http://localhost:5000`.
 
 ## Usage
 Send a POST request to `/caption` with an image file.
-   ```curl -X POST -F "file=@path/to/your/image.jpg" http://localhost:5000/caption
-   ```
+   curl -X POST -F "file=@path/to/your/image.jpg" http://localhost:5000/caption
+   
 
 
 ## Running Tests
