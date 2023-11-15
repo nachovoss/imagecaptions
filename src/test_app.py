@@ -51,7 +51,7 @@ class TestImageCaptioningApp(unittest.TestCase):
 
 class TestImageCaptioningAppIntegration(unittest.TestCase):
     
-    BASE_URL = 'http://127.0.0.1:5000'
+    BASE_URL = os.getenv("TEST_URL")
 
     def test_caption_endpoint_with_no_file(self):
         response = requests.post(f'{self.BASE_URL}/caption')
