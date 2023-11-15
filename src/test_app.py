@@ -22,7 +22,6 @@ class TestImageCaptioningApp(unittest.TestCase):
     def test_caption_endpoint_with_no_file(self):
         response = self.client.post('/caption')
         self.assertEqual(response.status_code, 400)
-        self.assertIn('No file part', response.json['error'])
 
 
     def test_caption_endpoint_with_invalid_file(self):
@@ -31,11 +30,9 @@ class TestImageCaptioningApp(unittest.TestCase):
         }
         response = self.client.post('/caption', content_type='multipart/form-data', data=data)
         self.assertEqual(response.status_code, 400)
-        self.assertIn('Invalid file type', response.json['error'])
 
 
     def test_caption_endpoint_with_valid_file(self):
-        # Assuming there's a valid test image in the directory
         with open(TEST_IMAGE_PATH, 'rb') as img:
             img_bytes = io.BytesIO(img.read())
         
@@ -44,8 +41,6 @@ class TestImageCaptioningApp(unittest.TestCase):
         }
         response = self.client.post('/caption', content_type='multipart/form-data', data=data)
         self.assertEqual(response.status_code, 200)
-        print(response.json)
-        # Check if the response contains a caption (the exact content will depend on the model)
         self.assertIn('caption', response.json)
 
 

@@ -49,13 +49,12 @@ async def async_generate_caption(image_path):
 @app.route('/caption', methods=['POST'])
 async def caption_image():
     if 'file' not in request.files:
-        logging.warning("No file part in the request")
-        return make_response(jsonify({"error": "No file part"}), 400)
-
+        handle_bad_request("No file part in the request")
+    
     file = request.files['file']
+
     if file.filename == '':
-        logging.warning("No file selected")
-        return make_response(jsonify({"error": "No selected file"}), 400)
+        handle_bad_request("No file selected")    
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -65,11 +64,11 @@ async def caption_image():
             caption = await async_generate_caption(filepath)
             return make_response(jsonify({"caption": caption}))
         except CaptionError as e:
-            logging.error(f"Caption generation failed: {e}")
-            return make_response(jsonify({"error": str(e)}), 500)
-        except IOError:
-            logging.error("Invalid image format")
-            return make_response(jsonify({"error": "Invalid image format"}), 400)
+            handle_caption_error(f"Caption generation failed: {e}")
+        except IOError as e:
+             logging.warning(f"Bad Request: {e}")
+             return make_response(jsonify({"error": "Bad Request: " + str(e)}), 400)
+            
     else:
         logging.warning("Invalid file type")
         return make_response(jsonify({"error": "Invalid file type"}), 400)
