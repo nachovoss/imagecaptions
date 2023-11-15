@@ -16,8 +16,8 @@ This Flask-based application generates captions for images using machine learnin
 1. Clone the repository.
 2. (Optional) Create and activate a virtual environment:
    ```bash
-   virtualenv venv
-   source venv/bin/activate  # Unix/MacOS
+   python -m venv venv #python3 for linux
+   source venv/bin/activate  # linux
    venv\Scripts\activate  # Windows
    ```
 3. Install dependencies:
