@@ -42,9 +42,6 @@ For scaling the application:
 1. Create Kubernetes configurations for deployment, services, and horizontal pod autoscalers.
 2. Deploy to a Kubernetes cluster, adjusting replicas as needed for load.
 
-## Running the Application
-Access the application at `http://localhost:5000`.
-
 ## Usage
 Send a POST request to `/caption` with an image file.
    curl -X POST -F "file=@path/to/your/image.jpg" http://localhost:5000/caption
