@@ -1,5 +1,5 @@
 
-# Image Captioning App
+# Image Captioning Api
 
 ## Description
 This Flask-based application generates captions for images using machine learning. It leverages Hypercorn and asyncio for improved performance.
